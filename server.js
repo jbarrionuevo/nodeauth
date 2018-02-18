@@ -71,6 +71,53 @@ apiRoutes.get('/users', function(req, res) {
   });
 });
 
+//Adds authentication
+// route to authenticate a user (POST http://localhost:8080/api/authenticate)
+apiRoutes.post('/authenticate', function(req, res) {
+
+  // find the user
+  User.findOne({
+    name: req.body.name
+  }, function(err, user) {
+
+    if (err) throw err;
+
+    if (!user) {
+      res.json({ success: false, message: 'Authentication failed. User not found.' });
+    } else if (user) {
+
+      // check if password matches
+      if (user.password != req.body.password) {
+        res.json({ success: false, message: 'Authentication failed. Wrong password.' });
+      } else {
+        console.log('User found successfully 001');
+        // if user is found and password is right
+        // create a token with only our given payload
+    // we don't want to pass in the entire user since that has the password
+    const payload = {
+      admin: user.admin
+    };
+    console.log('User found successfully 002');
+        var token = jwt.sign(payload, app.get('superSecret'), {
+          expiresIn: 2 // expires in 2 minutes
+        });
+        console.log('User found successfully 003');
+        // return the information including token as JSON
+        res.json({
+          //console.log('User found successfully 007');
+          success: true,
+          message: 'Enjoy your token!',
+          token: token
+          //console.log('User found successfully 008');
+        });
+        console.log('User found successfully 004');
+      }
+
+    }
+
+  });
+});
+
 // apply the routes to our application with the prefix /api
 app.use('/api', apiRoutes);
 
